@@ -1,7 +1,11 @@
 package com.blz.webapp.controller;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.List;
+
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,24 +23,23 @@ public class LoginRegister extends HttpServlet {
 	private CustomerService service;
     public LoginRegister() {
         super();
-        System.out.println("in init method");
     }
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		service=new CustomerServiceImpl();
+		PrintWriter out=response.getWriter();
 		String userID=request.getParameter("userID");
 		 HttpSession session=request.getSession(); 
 		String passWord=request.getParameter("passWord");
 		String submit=request.getParameter("submit");
 		Customer c=service.getConnection(userID, passWord);
 		if(submit.equals("Login")&& c!=null && c.getName()!=null) {
-
-			 //request.setAttribute("message", c.getName());
-			//request.getRequestDispatcher("Welcome.jsp").include(request, response);
-		
-			 log.info(c.getName()+" Logged in");
-			 session.setAttribute("message",c.getName()); 
-			 response.sendRedirect("Welcome.jsp");
-			 
+			session.setAttribute("user", userID);
+			Cookie user=new Cookie("user", userID); 
+			response.addCookie(user);
+			log.info(c.getName()+" Logged in");
+			 request.setAttribute("message", c.getName());
+			 request.getRequestDispatcher("Welcome.jsp").forward(request,response);
+			 			 
 		}
 		else if(submit.equals("Register")) {
 			String name=request.getParameter("name");
@@ -50,8 +53,12 @@ public class LoginRegister extends HttpServlet {
 		else if(submit.equals("Logout"))
 		{
 			log.info("logged out");
-			session.setAttribute("message", "logged out successful");
+			session.invalidate();
 			request.getRequestDispatcher("Home.jsp").forward(request,response);
+		}
+		else if(submit.equals("Info"))
+		{
+			 request.getRequestDispatcher("information.jsp").forward(request,response);
 		}
 		else
 		{
